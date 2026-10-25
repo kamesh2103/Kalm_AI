@@ -1,61 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import Main from './Components/Main/Main';
-import Sidebar from './Components/Sidebar/Sidebar';
+import React, { useState, useEffect, useCallback } from "react";
+import Main from "./Components/Main/Main";
+import Sidebar from "./Components/Sidebar/Sidebar";
+
+// One breakpoint shared by App, Sidebar and Main (Tailwind's `md`)
+const MOBILE_BREAKPOINT = 768;
 
 const App = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarExtended, setSidebarExtended] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
+  const [sidebarExtended, setSidebarExtended] = useState(true); // desktop expanded/collapsed
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < MOBILE_BREAKPOINT : false
+  );
 
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 600;
-      setIsMobile(mobile);
-      // Close mobile sidebar when switching to desktop
-      if (!mobile && sidebarOpen) {
-        setSidebarOpen(false);
-      }
-      // Auto-extend sidebar on desktop
-      if (!mobile) {
-        setSidebarExtended(true);
-      }
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const apply = () => {
+      setIsMobile(mq.matches);
+      if (!mq.matches) setSidebarOpen(false); // close drawer when going to desktop
     };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [sidebarOpen]);
+  // Lock background scroll while the mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = isMobile && sidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile, sidebarOpen]);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(prev => !prev);
-  };
-
-  const toggleSidebarExtended = () => {
-    setSidebarExtended(prev => !prev);
-  };
-
-  // Calculate main content margin based on sidebar state
-  const getMainMarginLeft = () => {
-    if (isMobile) {
-      return '0px'; // No margin on mobile
-    }
-    return sidebarExtended ? '256px' : '80px'; // 256px = w-64, 80px = w-20
-  };
+  const toggleSidebar = useCallback(() => setSidebarOpen((p) => !p), []);
+  const toggleSidebarExtended = useCallback(() => setSidebarExtended((p) => !p), []);
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-gray-50">
-      <Sidebar 
+    <div className="w-full h-[100dvh] overflow-hidden bg-white">
+      <Sidebar
+        isMobile={isMobile}
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
         extended={sidebarExtended}
         toggleExtended={toggleSidebarExtended}
       />
-      <Main 
+      <Main
         isMobile={isMobile}
-        sidebarOpen={sidebarOpen}
         sidebarExtended={sidebarExtended}
         toggleSidebar={toggleSidebar}
-        mainMarginLeft={getMainMarginLeft()}
       />
     </div>
   );

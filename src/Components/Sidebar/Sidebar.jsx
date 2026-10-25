@@ -1,44 +1,28 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import { Context } from "../../context/context";
 import {
   TbLayoutSidebarRightExpand,
   TbLayoutSidebarLeftExpand,
 } from "react-icons/tb";
-import { HiChevronDoubleRight, HiChevronDoubleLeft } from "react-icons/hi2";
+import { HiChevronDoubleLeft } from "react-icons/hi2";
 
-const Sidebar = ({ isOpen, toggleSidebar, extended, toggleExtended }) => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+const Sidebar = ({ isMobile, isOpen, toggleSidebar, extended, toggleExtended }) => {
 
-  const {
-    onSent,
-    prevPrompts,
-    setRecentPrompt,
-    setInput,
-    setResultData,
-    setShowResult,
-    conversationHistory,
-    setCurrentChatId,
-    createNewChat,
-  } = useContext(Context);
+  const { conversationHistory, currentChatId, setCurrentChatId, createNewChat } =
+    useContext(Context);
 
+  // Close the mobile drawer with Escape
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 600;
-      setIsMobile(mobile);
-    };
+    if (!isMobile || !isOpen) return;
+    const onKey = (e) => e.key === "Escape" && toggleSidebar();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, isOpen, toggleSidebar]);
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const loadPrompt = async (chatId) => {
-    const chat = conversationHistory.find(c => c.id === chatId);
-    if (chat) {
-      setCurrentChatId(chatId);
-      if (isMobile) toggleSidebar();
-    }
+  const loadPrompt = (chatId) => {
+    setCurrentChatId(chatId);
+    if (isMobile) toggleSidebar();
   };
 
   const handleNewChat = () => {
@@ -51,7 +35,7 @@ const Sidebar = ({ isOpen, toggleSidebar, extended, toggleExtended }) => {
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={toggleSidebar}
         />
       )}
@@ -59,12 +43,12 @@ const Sidebar = ({ isOpen, toggleSidebar, extended, toggleExtended }) => {
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 z-50 h-full
+          fixed top-0 left-0 z-50 h-[100dvh]
           bg-gray-900 
           flex flex-col justify-between
           transition-all duration-300 ease-in-out
           ${isMobile 
-            ? `w-64 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl` 
+            ? `w-[18rem] max-w-[85vw] ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full invisible'}` 
             : `${extended ? 'w-64' : 'w-20'} translate-x-0`
           }
         `}
@@ -152,7 +136,7 @@ const Sidebar = ({ isOpen, toggleSidebar, extended, toggleExtended }) => {
                           w-full flex items-start gap-3 p-2 px-3
                           rounded-lg text-sm text-gray-200 cursor-pointer
                           hover:bg-gray-700 transition-colors
-                          ${chat.active ? 'bg-gray-700' : ''}
+                          ${chat.id === currentChatId ? 'bg-gray-700' : ''}
                         `}
                         onClick={() => loadPrompt(chat.id)}
                       >
@@ -162,8 +146,7 @@ const Sidebar = ({ isOpen, toggleSidebar, extended, toggleExtended }) => {
                           className="w-4 h-4 mt-0.5 flex-shrink-0 filter brightness-0 invert opacity-70"
                         />
                         <span className="truncate text-left">
-                          {chat.messages[0]?.content.slice(0, 30) || "New Chat"}
-                          {chat.messages[0]?.content.length > 30 ? "..." : ""}
+                          {chat.title || "New Chat"}
                         </span>
                       </button>
                     ))

@@ -1,22 +1,55 @@
-*{
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-    font-family: 'Outfit', sans-serif;
 
-}
-#root{
-  min-height: 100vh;
-  display: flex;
-  animation: fadeIn 1.5s;
-}
-@keyframes fadeIn {
-  0%{
-    opacity: 0;
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap');
 
+/* Raleway: Main application UI */
+body,
+button,
+input,
+textarea,
+select,
+#root {
+  font-family: 'Raleway', sans-serif;
+}
+
+/* Lora: AI-generated content and rendered Markdown */
+.ai-content {
+  font-family: 'Lora', serif;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: #1f2937;
+}
+
+/* Headings inside AI responses */
+.ai-content h1,
+.ai-content h2,
+.ai-content h3,
+.ai-content h4 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #111827;
+}
+
+/* Code should remain monospaced */
+.ai-content code,
+.ai-content pre,
+.ai-content pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Form elements inherit the intended font */
+button,
+input,
+textarea,
+select {
+  font-size: inherit;
+}
+
+/* Small screens */
+@media (max-width: 380px) {
+  .ai-content {
+    font-size: 0.875rem;
+    line-height: 1.7;
   }
-  100%{
-      opacity: 1;
-  }
+}
   
-}
